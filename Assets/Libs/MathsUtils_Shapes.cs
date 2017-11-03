@@ -159,6 +159,23 @@ namespace EnkiBye.Maths.Shapes
             return point.isInCircumscribedCircle(this);
         }
 
+        /// <summary>
+        /// if the two triangles share a segment, return the vector (i, j), where i is the index of the segment int the first triangle and j is the index in the second triangle
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public Vector2 isAdjacent(Triangle other)
+        {
+            for (int i = 0; i < segments.Length; i++)
+            {
+                for (int j = 0; j < other.segments.Length; j++)
+                {
+                    if (segments[i].isEqual(other.segments[j])) return new Vector2(i, j);
+                }
+            }
+            return new Vector2(-1, -1);
+        }
+
     }//Triangle
 
 
@@ -302,9 +319,9 @@ namespace EnkiBye.Maths.Shapes
             points.Add(tempPoints[2]);
 
             recalculateHull();
-            if(Application.isPlaying)
+            if(Application.isPlaying && false)
             {
-                PointsManager.get().StartCoroutine(addPointProcessDelayed(tempPoints));
+                //PointsManager.get().StartCoroutine(addPointProcessDelayed(tempPoints));
             }
             else
             {
@@ -430,8 +447,71 @@ namespace EnkiBye.Maths.Shapes
 
     }//Triangulation
 
+    [System.Serializable]
+    public class Voronoi
+    {
+        public Triangulation delaunay;
+
+        public Polygon[] polygons;
+
+        private List<Triangle> trianglesTemp;
+
+        public List<Vector2> points;
+
+        public List<Segment> segments;
+
+        public Voronoi(Triangulation triangulation)
+        {
+            delaunay = triangulation;
+            trianglesTemp = new List<Triangle>(delaunay.triangles);
+            points = new List<Vector2>();
+            segments = new List<Segment>();
+
+            bool[] freeEdge = new bool[3] { false, false, false };
+
+            for (int i = 0; i < trianglesTemp.Count; i++)
+            {
+                freeEdge = new bool[3] { false, false, false };
+
+                for (int j = 0; j < trianglesTemp.Count; j++)
+                {
+                    if (i == j) continue;
+                    Vector2 adjacentReturn = trianglesTemp[i].isAdjacent(trianglesTemp[j]);
+                    if (adjacentReturn.x != -1)
+                    {
+                        segments.Add(new Segment(trianglesTemp[i].hortocenter, trianglesTemp[j].hortocenter));
+                        freeEdge[(int)adjacentReturn.x] = true;
+                    }
+                }
+
+                for (int j = 0; j < freeEdge.Length; j++)
+                {
+                    if (!freeEdge[j])
+                    {
+                        segments.Add(new Segment(trianglesTemp[i].hortocenter, trianglesTemp[i].segments[j].middle + trianglesTemp[i].segments[j].normal * 1000));
+                    }
+                }
+
+                //trianglesTemp.RemoveAt(0);
+                //i--;
+                //break;
+            }
+
+            for (int i = 0; i < delaunay.triangles.Count; i++)
+            {
+                points.Add(delaunay.triangles[i].hortocenter);
+            }
 
 
+
+        }
+
+
+
+
+
+
+    }
 
 
 

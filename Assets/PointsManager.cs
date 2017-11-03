@@ -28,10 +28,11 @@ public class PointsManager : MonoBehaviour
     public float pointSize = 0.1f;
     public Gradient pointColor;
 
-    [Header("Datas")][HideInInspector]
+    [Header("Datas")]
+    [HideInInspector]
     public List<Vector2> points;
 
-    [HideInInspector]
+    //[HideInInspector]
     public List<Transform> pointsTr;
 
     [HideInInspector]
@@ -39,6 +40,8 @@ public class PointsManager : MonoBehaviour
 
     [HideInInspector]
     public Triangulation triangulation;
+
+    public Voronoi voronoi;
 
     [HideInInspector]
     List<DisplayTriangle> meshes = new List<DisplayTriangle>();
@@ -50,7 +53,7 @@ public class PointsManager : MonoBehaviour
         convexHull = Jarvis.GetConvexHull(points);
         triangulation = null;
         //triangulation = new Triangulation(points);
-
+        OnTriangulate();
         if (Application.isPlaying)
         {
             RecreatePoints();
@@ -61,6 +64,7 @@ public class PointsManager : MonoBehaviour
     public void OnTriangulate()
     {
         triangulation = new Triangulation(points);
+        voronoi = new Voronoi(triangulation);
     }
 
     public void OnUpdateHull()
@@ -107,17 +111,15 @@ public class PointsManager : MonoBehaviour
         bool recalculate = false;
         for (int i = 0; i < points.Count; i++)
         {
-            if (points[i] != (Vector2)pointsTr[i].position) recalculate = true;
+            if (Vector2.Distance( points[i], (Vector2)pointsTr[i].position) > 0.1f) recalculate = true;
             points[i] = pointsTr[i].position;
         }
-        if (recalculate)
+        if (recalculate) 
         {
             points.sortX();
             convexHull = Jarvis.GetConvexHull(points);
             triangulation = new Triangulation(points);
-
-
-
+            voronoi = new Voronoi(triangulation);
             createMeshes();
         }
 
@@ -164,7 +166,11 @@ public class PointsManager : MonoBehaviour
             }
         }
 
-        if (Input.GetMouseButtonUp(0) && dragedPoint != null) dragedPoint = null;
+        if (Input.GetMouseButtonUp(0) && dragedPoint != null)
+        {
+            RecreatePoints();
+            dragedPoint = null;
+        }
 
 
     }
@@ -184,7 +190,10 @@ public class PointsManager : MonoBehaviour
                 pointsTr[pointsTr.Count - 1].position = points[i];
             }
             triangulation = new Triangulation(points);
+            voronoi = new Voronoi(triangulation);
             createMeshes();
+
+            SimpleCamControll.get().updateSizes();
         }
     }
 
@@ -247,6 +256,19 @@ public class PointsManager : MonoBehaviour
         if(triangulation != null)
             triangulation.Draw();
 
+
+        if(voronoi != null && voronoi.points != null)
+        {
+            for (int i = 0; i < voronoi.points.Count; i++)
+            {
+                Gizmos.color = Color.green;
+                Gizmos.DrawSphere(voronoi.points[i], 0.5f);
+            }
+            for (int i = 0; i < voronoi.segments.Count; i++)
+            {
+                voronoi.segments[i].Draw();
+            }
+        }
 
     }
 
