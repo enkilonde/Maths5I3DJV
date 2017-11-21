@@ -43,8 +43,12 @@ public class PointsManager : MonoBehaviour
 
     public Voronoi voronoi;
 
+    private DrawLines linesTriangulation = new DrawLines();
+    private DrawLines linesVoronoi = new DrawLines();
+
     [HideInInspector]
     List<DisplayTriangle> meshes = new List<DisplayTriangle>();
+    bool meshesEnabled = true;
 
     public void OnButtonClick()
     {
@@ -104,6 +108,23 @@ public class PointsManager : MonoBehaviour
 
         computeMousePos();
 
+        if(Input.GetKeyUp(KeyCode.Keypad1))
+        {
+            linesTriangulation.toggleEnable();
+            meshesEnabled = !meshesEnabled;
+            for (int i = 0; i < meshes.Count; i++)
+            {
+                meshes[i].toggleEnable(meshesEnabled);
+            }
+
+        }
+
+        if (Input.GetKeyUp(KeyCode.Keypad2))
+        {
+            linesVoronoi.toggleEnable();
+        }
+
+
     }
 
     public void updateTriangulation()
@@ -131,19 +152,25 @@ public class PointsManager : MonoBehaviour
 
 
 
-        if (Input.GetMouseButtonDown(0) && dragedPoint == null)
+        if ((Input.GetMouseButtonDown(0) || Input.GetMouseButtonUp(1)) && dragedPoint == null)
         {
-            for (int i = 0; i < pointsTr.Count; i++)
+
+            dragedPoint = GetNearestPoint(mousePos, pointsTr[0].localScale.x); // get nearest point
+
+            for (int i = 0; i < meshes.Count; i++) meshes[i].unFocus(); // unFocus all meshes
+
+            if(Input.GetMouseButtonUp(1))
             {
-                if (Vector2.Distance(pointsTr[i].position, mousePos) < pointsTr[i].localScale.x)
+                if(dragedPoint == null)
                 {
-                    dragedPoint = pointsTr[i];
-                    break;
+                    addPoint(new Vector2(mousePos.x, mousePos.y));
                 }
-            }
-            for (int i = 0; i < meshes.Count; i++)
-            {
-                meshes[i].unFocus();
+                else
+                {
+                    RemovePoint(dragedPoint);
+                }
+                dragedPoint = null;
+                return;
             }
         }
 
@@ -171,8 +198,6 @@ public class PointsManager : MonoBehaviour
             RecreatePoints();
             dragedPoint = null;
         }
-
-
     }
 
     public void RecreatePoints()
@@ -193,13 +218,12 @@ public class PointsManager : MonoBehaviour
             voronoi = new Voronoi(triangulation);
             createMeshes();
 
-            SimpleCamControll.get().updateSizes();
+            
         }
     }
 
     public void createMeshes()
     {
-
         if(meshes.Count != triangulation.triangles.Count)
         {
             for (int i = 0; i < meshes.Count; i++)
@@ -208,30 +232,82 @@ public class PointsManager : MonoBehaviour
             }
             meshes = new List<DisplayTriangle>();
             meshes.Clear();
-            DrawLines.CleanLinesList();
+            linesTriangulation.CleanLinesList();
 
             for (int i = 0; i < triangulation.triangles.Count; i++)
             {
                 meshes.Add(new DisplayTriangle(triangulation.triangles[i]));
-                DrawLines.DrawLine_LR(triangulation.triangles[i].points, true);
+                meshes[meshes.Count - 1].toggleEnable(meshesEnabled);
+                linesTriangulation.DrawLine_LR(triangulation.triangles[i].points, true);
             }
         }
         else
         {
-
             for (int i = 0; i < meshes.Count; i++)
             {
                 meshes[i].applyTriangle(triangulation.triangles[i]);
-                DrawLines.DrawLine_LR(triangulation.triangles[i].points, DrawLines.lines[i], true);
+                linesTriangulation.DrawLine_LR(triangulation.triangles[i].points, linesTriangulation.lines[i], true);
+            }
+        }
+
+        if(linesVoronoi.lines.Count != voronoi.segments.Count)
+        {
+            linesVoronoi.CleanLinesList();
+            for (int i = 0; i < voronoi.segments.Count; i++)
+            {
+                linesVoronoi.DrawLine_LR(voronoi.segments[i].points, true, Color.green);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < voronoi.segments.Count; i++)
+            {
+                linesVoronoi.DrawLine_LR(voronoi.segments[i].points, linesVoronoi.lines[i], true, Color.green);
             }
         }
 
 
+
+        SimpleCamControll.get().updateSizes();
+
+    }//createMeshes
+
+    public void addPoint(Vector2 pos)
+    {
+        points.Add(pos);
+
+        points.sortX();
+        convexHull = Jarvis.GetConvexHull(points);
+        triangulation = new Triangulation(points);
+        voronoi = new Voronoi(triangulation);
+        RecreatePoints();
     }
 
+    public void RemovePoint(Transform transf)
+    {
+        points.RemoveAt(pointsTr.findIndex(transf));
+        points.sortX();
+        convexHull = Jarvis.GetConvexHull(points);
+        triangulation = new Triangulation(points);
+        voronoi = new Voronoi(triangulation);
+        RecreatePoints();
+    }
 
+    public Transform GetNearestPoint(Vector2 pos, float minDist = Mathf.Infinity)
+    {
 
-
+        int nearestPointIndex = -1;
+        for (int i = 0; i < pointsTr.Count; i++)
+        {
+            float dist = Vector2.Distance(pos, pointsTr[i].position);
+            if(dist <= minDist)
+            {
+                minDist = dist;
+                nearestPointIndex = i;
+            }
+        }
+        return nearestPointIndex >= 0 ? pointsTr[nearestPointIndex] : null;
+    }
 
     private void OnDrawGizmos()
     {
@@ -275,12 +351,17 @@ public class PointsManager : MonoBehaviour
 }
 
 
+
+
+
 public class DisplayTriangle
 {
     public Triangle triangle;
     public MeshFilter meshFilter;
 
     public Transform circle;
+
+    bool enabled = true;
 
     public bool focused = false;
 
@@ -344,7 +425,7 @@ public class DisplayTriangle
         if (focused) return;
         focused = true;
 
-        circle.gameObject.SetActive(true);
+        circle.gameObject.SetActive(true && enabled);
         meshFilter.GetComponent<MeshRenderer>().material.color = Color.red;
 
     }
@@ -363,6 +444,13 @@ public class DisplayTriangle
     {
         GameObject.Destroy(meshFilter.gameObject);
         GameObject.Destroy(circle.gameObject);
+    }
+
+    public void toggleEnable(bool flag)
+    {
+        enabled = flag;
+        meshFilter.gameObject.SetActive(enabled);
+        circle.gameObject.SetActive(enabled && focused);
     }
 }
 

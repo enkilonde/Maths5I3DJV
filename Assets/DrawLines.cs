@@ -4,11 +4,67 @@ using UnityEngine;
 
 public class DrawLines
 {
-    public static float depth = -0.1f;
-    public static List<LineRenderer> lines = new List<LineRenderer>();
+
+    public static List<DrawLines> instances = new List<DrawLines>();
+
+    public DrawLines()
+    {
+        instances.Add(this);
+    }
+
+    ~DrawLines()
+    {
+        instances.Remove(this);
+    }
+
+    public static void CleanAll()
+    {
+        for (int i = 0; i < instances.Count; i++)
+        {
+            instances[i].CleanLinesList();
+        }
+    }
+
+    public static void resizeAll(float value = 1)
+    {
+        for (int i = 0; i < instances.Count; i++)
+        {
+            instances[i].resize(value);
+        }
+    }
+
+  
 
 
-    public static void CleanLinesList()
+
+
+
+    bool enabled = true;
+    public void toggleEnable()
+    {
+        setEnable(!enabled);
+    }
+    public void setEnable(bool flag)
+    {
+        enabled = flag;
+        for (int i = 0; i < lines.Count; i++)
+        {
+            lines[i].enabled = enabled;
+        }
+    }
+
+    public void resize(float value)
+    {
+        for (int j = 0; j < lines.Count; j++)
+        {
+            lines[j].widthMultiplier = value;
+        }
+    }
+
+    public float depth = -0.1f;
+    public List<LineRenderer> lines = new List<LineRenderer>();
+
+    public void CleanLinesList()
     {
         for (int i = 0; i < lines.Count; i++)
         {
@@ -21,48 +77,48 @@ public class DrawLines
         lines = new List<LineRenderer>();
     }
 
-
-
-
-    public static LineRenderer DrawLine_LR(Vector3[] points, LineRenderer overideOld, bool loop = false)
+    public LineRenderer DrawLine_LR(Vector3[] points, LineRenderer overideOld, bool loop = false, Color color = default(Color))
     {
         if (overideOld == null) return DrawLine_LR(points, loop);
         overideOld.positionCount = points.Length;
         overideOld.SetPositions(points);
         overideOld.loop = loop;
+        overideOld.material.color = color;
         if (!lines.Contains(overideOld)) lines.Add(overideOld);
+        overideOld.enabled = enabled;
         return overideOld;
     }
 
-    public static LineRenderer DrawLine_LR(Vector3[] points, bool loop = false)
+    public LineRenderer DrawLine_LR(Vector3[] points, bool loop = false, Color color = default(Color))
     {
         GameObject go = new GameObject("line renderer");
         LineRenderer lr = go.AddComponent<LineRenderer>();
         lr.startWidth = lr.endWidth = 0.2f;
         lr.material = new Material(Shader.Find("Diffuse"));
-        lr.material.color = Color.black;
+        lr.material.color = color;
         lr.positionCount = points.Length;
         lr.loop = loop;
         lr.SetPositions(points);
         lines.Add(lr);
+        lr.enabled = enabled;
         return lr;
     }
 
 
-    public static LineRenderer DrawLine_LR(Vector2[] points, LineRenderer overideOld, bool loop = false)
+    public LineRenderer DrawLine_LR(Vector2[] points, LineRenderer overideOld, bool loop = false, Color color = default(Color))
     {
-        if (overideOld == null) return DrawLine_LR(points);
-        return DrawLine_LR(AddDimention(points), overideOld, loop);
+        if (overideOld == null) return DrawLine_LR(points, loop, color);
+        return DrawLine_LR(AddDimention(points), overideOld, loop, color);
     }
 
-    public static LineRenderer DrawLine_LR(Vector2[] points, bool loop = false)
+    public LineRenderer DrawLine_LR(Vector2[] points, bool loop = false, Color color = default(Color))
     {
-        return DrawLine_LR(AddDimention(points), loop);
+        return DrawLine_LR(AddDimention(points), loop, color);
     }
 
 
 
-    public static Vector3[] AddDimention(Vector2[] points)
+    public Vector3[] AddDimention(Vector2[] points)
     {
         Vector3[] output = new Vector3[points.Length];
         for (int i = 0; i < points.Length; i++)

@@ -75,10 +75,12 @@ public class SimpleCamControll : MonoBehaviour
             PointsManager.get().pointsTr[i].localScale = Vector3.one * cam.orthographicSize / pointsSizeRatio;
         }
 
-        for (int i = 0; i < DrawLines.lines.Count; i++)
-        {
-            DrawLines.lines[i].widthMultiplier = cam.orthographicSize / lineWidthRatio;
-        }
+        DrawLines.resizeAll(cam.orthographicSize / lineWidthRatio);
+
+        //for (int i = 0; i < DrawLines.lines.Count; i++)
+        //{
+        //    DrawLines.lines[i].widthMultiplier = cam.orthographicSize / lineWidthRatio;
+        //}
     }
 
 }

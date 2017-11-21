@@ -195,6 +195,14 @@ namespace EnkiBye.Maths.Shapes
             }
         }
 
+        public Segment oposite
+        {
+            get
+            {
+                return new Segment(b, a);
+            }
+        }
+
         /// <summary>
         /// The normal of the segment, pointing to the exterior of the triangle
         /// </summary>
@@ -227,6 +235,10 @@ namespace EnkiBye.Maths.Shapes
         public virtual void Draw()
         {
             Gizmos.DrawLine(a, b);
+        }
+        public virtual new string ToString()
+        {
+            return "{" + a + ", " + b + "}";
         }
 
     }//Segment
@@ -325,7 +337,6 @@ namespace EnkiBye.Maths.Shapes
             }
             else
             {
-                Debug.Log("triangulation");
                 for (int i = 3; i < tempPoints.Count; i++)
                 {
                     addPoint(tempPoints[i]);
@@ -476,10 +487,14 @@ namespace EnkiBye.Maths.Shapes
                 for (int j = 0; j < trianglesTemp.Count; j++)
                 {
                     if (i == j) continue;
+
+                    
+
                     Vector2 adjacentReturn = trianglesTemp[i].isAdjacent(trianglesTemp[j]);
-                    if (adjacentReturn.x != -1)
+                    Segment S = new Segment(trianglesTemp[i].hortocenter, trianglesTemp[j].hortocenter);
+                    if (adjacentReturn.x != -1) //the two triangles share a segment, so we link it
                     {
-                        segments.Add(new Segment(trianglesTemp[i].hortocenter, trianglesTemp[j].hortocenter));
+                        if (!hasSegment(S)) segments.Add(S);
                         freeEdge[(int)adjacentReturn.x] = true;
                     }
                 }
@@ -491,10 +506,6 @@ namespace EnkiBye.Maths.Shapes
                         segments.Add(new Segment(trianglesTemp[i].hortocenter, trianglesTemp[i].segments[j].middle + trianglesTemp[i].segments[j].normal * 1000));
                     }
                 }
-
-                //trianglesTemp.RemoveAt(0);
-                //i--;
-                //break;
             }
 
             for (int i = 0; i < delaunay.triangles.Count; i++)
@@ -504,14 +515,24 @@ namespace EnkiBye.Maths.Shapes
 
 
 
+        }//voronoi()
+
+
+        bool hasSegment(Segment S)
+        {
+            for (int i = 0; i < segments.Count; i++)
+            {
+                if(segments[i].isEqual(S))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
 
 
-
-
-
-    }
+    }//Voronoï
 
 
 
