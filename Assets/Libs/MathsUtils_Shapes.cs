@@ -92,6 +92,9 @@ namespace EnkiBye.Maths.Shapes
 
         public virtual void Draw()
         {
+            #if !UNITY_EDITOR
+                return; 
+            #endif
             for (int i = 0; i < segments.Length; i++)
             {
                 segments[i].Draw();
@@ -110,6 +113,34 @@ namespace EnkiBye.Maths.Shapes
                 if (points[i] == point) return true;
             }
             return false;
+        }
+
+        public virtual int[] ShareVertice(Polygon otherPoly)
+        {
+            List<int> shardedPoints = new List<int>();
+            for (int i = 0; i < points.Length; i++)
+            {
+                if (otherPoly.points.Contains(points[i])) shardedPoints.Add(i);
+            }
+            return shardedPoints.ToArray();
+        }
+
+        public virtual int[] ShareEdge(Polygon otherPoly)
+        {
+            int[] sharedVertice = ShareVertice(otherPoly);
+            List<int> segmentsShared = new List<int>();
+
+            if (sharedVertice.Length == 0) segmentsShared.ToArray();
+
+
+            for (int i = 0; i < segments.Length; i++)
+            {
+                for (int j = 0; j < otherPoly.segments.Length; j++)
+                {
+                    if (segments[i].isEqual(otherPoly.segments[j])) segmentsShared.Add(i);
+                }
+            }
+            return segmentsShared.ToArray();
         }
 
     }
@@ -234,6 +265,9 @@ namespace EnkiBye.Maths.Shapes
 
         public virtual void Draw()
         {
+            #if !UNITY_EDITOR
+                return; 
+            #endif
             Gizmos.DrawLine(a, b);
         }
         public virtual new string ToString()
@@ -276,6 +310,11 @@ namespace EnkiBye.Maths.Shapes
         public override void Draw()
         {
             base.Draw();
+
+            #if !UNITY_EDITOR
+                return; 
+            #endif
+
             Color c = Gizmos.color;
             Gizmos.color = Color.black;
             Gizmos.DrawLine(middle, middle + normal);
@@ -449,6 +488,9 @@ namespace EnkiBye.Maths.Shapes
 
         public void Draw()
         {
+            #if !UNITY_EDITOR
+                return; 
+            #endif
             if (triangles == null) return;
             for (int i = 0; i < triangles.Count; i++)
             {
@@ -463,7 +505,7 @@ namespace EnkiBye.Maths.Shapes
     {
         public Triangulation delaunay;
 
-        public Polygon[] polygons;
+        public List<Polygon> polygons = new List<Polygon>();
 
         private List<Triangle> trianglesTemp;
 
@@ -473,6 +515,9 @@ namespace EnkiBye.Maths.Shapes
 
         public Voronoi(Triangulation triangulation)
         {
+            secondVersion(triangulation);
+            //return;
+
             delaunay = triangulation;
             trianglesTemp = new List<Triangle>(delaunay.triangles);
             points = new List<Vector2>();
@@ -488,8 +533,6 @@ namespace EnkiBye.Maths.Shapes
                 {
                     if (i == j) continue;
 
-                    
-
                     Vector2 adjacentReturn = trianglesTemp[i].isAdjacent(trianglesTemp[j]);
                     Segment S = new Segment(trianglesTemp[i].hortocenter, trianglesTemp[j].hortocenter);
                     if (adjacentReturn.x != -1) //the two triangles share a segment, so we link it
@@ -504,6 +547,7 @@ namespace EnkiBye.Maths.Shapes
                     if (!freeEdge[j])
                     {
                         segments.Add(new Segment(trianglesTemp[i].hortocenter, trianglesTemp[i].segments[j].middle + trianglesTemp[i].segments[j].normal * 1000));
+                        points.Add(trianglesTemp[i].segments[j].middle + trianglesTemp[i].segments[j].normal * 1000);
                     }
                 }
             }
@@ -518,6 +562,43 @@ namespace EnkiBye.Maths.Shapes
         }//voronoi()
 
 
+        public void secondVersion(Triangulation triangulation)
+        {
+            delaunay = triangulation;
+            trianglesTemp = new List<Triangle>(delaunay.triangles);
+            points = new List<Vector2>();
+            segments = new List<Segment>();
+
+            for (int i = 0; i < delaunay.points.Count; i++)
+            {
+                //pour chaque point de la triangulation, trouver quels points sont reliés à lui.
+                Vector2 point = delaunay.points[i];
+                List<Vector2> otherPoints = new List<Vector2>();
+                List<Triangle> adjacentTriangles = new List<Triangle>();
+                List<Vector2> polygonPoints = new List<Vector2>();
+
+                for (int j = 0; j < delaunay.triangles.Count; j++) // on trouve les autres points
+                {
+                    if(delaunay.triangles[j].points.Contains(point))
+                    {
+                        Triangle currentTriangle = delaunay.triangles[j];
+                        adjacentTriangles.Add(currentTriangle);
+                        polygonPoints.Add(currentTriangle.hortocenter);
+                        int[] exterEdges = currentTriangle.ShareEdge(delaunay._convexHull);
+                        for (int e = 0; e < exterEdges.Length; e++)
+                        {
+                            if (currentTriangle.segments[exterEdges[e]].points.Contains(point)) //si un des edges externe du triangle contient le point actuel, on ajoutte un point externe loin
+                                polygonPoints.Add(currentTriangle.hortocenter + currentTriangle.segments[exterEdges[e]].normal * 1000);
+                        }
+                    }
+                }
+
+                polygons.Add(new Polygon(polygonPoints.ToArray()));
+            }
+
+
+        }
+
         bool hasSegment(Segment S)
         {
             for (int i = 0; i < segments.Count; i++)
@@ -530,6 +611,19 @@ namespace EnkiBye.Maths.Shapes
             return false;
         }
 
+        public virtual void Draw()
+        {
+
+            #if !UNITY_EDITOR
+                return; 
+            #endif
+            //
+            
+            for (int i = 0; i < polygons.Count; i++)
+            {
+                polygons[i].Draw();
+            }
+        }
 
 
     }//Voronoï

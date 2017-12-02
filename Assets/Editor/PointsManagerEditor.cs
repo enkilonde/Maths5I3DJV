@@ -15,11 +15,7 @@ public class PointsManagerEditor : Editor
 
         if (GUILayout.Button("Create Points"))
         {
-            _base.points = new List<Vector2>();
-            for (int i = 0; i < _base.numberOfPoints; i++)
-            {
-                _base.points.Add(new Vector2(Random.Range(-_base.area, _base.area), Random.Range(-_base.area, _base.area)));
-            }
+
             _base.OnButtonClick();
             SceneView.RepaintAll();
         }

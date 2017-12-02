@@ -31,6 +31,7 @@ public static class ListUtils
 
     public static void sortX(this List<Vector2> list)
     {
+        list.Sort((a, b) => a.y.CompareTo(b.y));
         list.Sort((a, b) => a.x.CompareTo(b.x));
     }
 

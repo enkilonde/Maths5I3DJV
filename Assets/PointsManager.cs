@@ -45,23 +45,22 @@ public class PointsManager : MonoBehaviour
 
     private DrawLines linesTriangulation = new DrawLines();
     private DrawLines linesVoronoi = new DrawLines();
+    MeshCreator meshesVoronoi = new MeshCreator();
 
     [HideInInspector]
     List<DisplayTriangle> meshes = new List<DisplayTriangle>();
     bool meshesEnabled = true;
+    bool canFocus = false;
+
+    bool moving = false;
+
+    public float percentChanceToTurn = 0.5f;
+    public float moveSpeed = 5f;
+
 
     public void OnButtonClick()
     {
-        //Debug.Log("clic");
-        points.sortX();
-        convexHull = Jarvis.GetConvexHull(points);
-        triangulation = null;
-        //triangulation = new Triangulation(points);
-        OnTriangulate();
-        if (Application.isPlaying)
-        {
-            RecreatePoints();
-        }
+        clear();
 
     }
 
@@ -100,15 +99,26 @@ public class PointsManager : MonoBehaviour
     private void Awake()
     {
         RecreatePoints();
+
+
+
     }
 
     private void Update()
     {
-        updateTriangulation();
+        movePoints();
 
         computeMousePos();
 
-        if(Input.GetKeyUp(KeyCode.Keypad1))
+        updateTriangulation();
+
+        getKeys();
+
+    }
+
+    public void getKeys()
+    {
+        if (Input.GetKeyUp(KeyCode.Keypad1))
         {
             linesTriangulation.toggleEnable();
             meshesEnabled = !meshesEnabled;
@@ -124,6 +134,32 @@ public class PointsManager : MonoBehaviour
             linesVoronoi.toggleEnable();
         }
 
+        if (Input.GetKeyUp(KeyCode.Keypad3))
+        {
+            canFocus = !canFocus;
+        }
+
+        if (Input.GetKeyUp(KeyCode.Keypad4))
+        {
+            clear();
+        }
+
+        if (Input.GetKeyUp(KeyCode.Keypad5))
+        {
+            meshesVoronoi.clear();
+            meshesVoronoi.ToggleEnable(!meshesVoronoi.enabled);
+            if (meshesVoronoi.enabled) recreateVoronoiMeshes();
+        }
+
+        if (Input.GetKeyUp(KeyCode.Keypad8))
+        {
+            moving = !moving;
+        }
+
+        if (Input.GetKey(KeyCode.KeypadPlus)) moveSpeed = Mathf.Clamp(moveSpeed+=Time.deltaTime*10, 0.1f, 100);
+        if (Input.GetKey(KeyCode.KeypadMinus)) moveSpeed = Mathf.Clamp(moveSpeed-=Time.deltaTime*10, 0.1f, 100);
+
+
 
     }
 
@@ -132,7 +168,7 @@ public class PointsManager : MonoBehaviour
         bool recalculate = false;
         for (int i = 0; i < points.Count; i++)
         {
-            if (Vector2.Distance( points[i], (Vector2)pointsTr[i].position) > 0.1f) recalculate = true;
+            if (Vector2.Distance( points[i], (Vector2)pointsTr[i].position) > 0.01f) recalculate = true;
             points[i] = pointsTr[i].position;
         }
         if (recalculate) 
@@ -182,7 +218,7 @@ public class PointsManager : MonoBehaviour
         {
             for (int i = 0; i < meshes.Count; i++)
             {
-                if (meshes[i].triangle.ContainPoint(mousePos))
+                if (meshes[i].triangle.ContainPoint(mousePos) && canFocus)
                 {
                     meshes[i].focus();
                 }
@@ -200,6 +236,20 @@ public class PointsManager : MonoBehaviour
         }
     }
 
+    public void movePoints()
+    {
+        if (!moving) return;
+        for (int i = 0; i < pointsTr.Count; i++)
+        {
+            pointsTr[i].transform.position += pointsTr[i].forward * Time.deltaTime * moveSpeed;
+            if(Random.Range(0f, 100f) <= percentChanceToTurn)
+                pointsTr[i].Rotate(Random.Range(-360, 360), 0, 0);
+
+            if (pointsTr[i].position.magnitude > area) pointsTr[i].LookAt(Vector3.zero);
+        }
+
+    }
+
     public void RecreatePoints()
     {
         if (points != null)
@@ -213,6 +263,8 @@ public class PointsManager : MonoBehaviour
             {
                 pointsTr.Add(GameObject.CreatePrimitive(PrimitiveType.Sphere).transform);
                 pointsTr[pointsTr.Count - 1].position = points[i];
+                pointsTr[pointsTr.Count - 1].LookAt(Vector3.zero);
+                pointsTr[pointsTr.Count - 1].Rotate(Random.Range(-360, 360), 0, 0);
             }
             triangulation = new Triangulation(points);
             voronoi = new Voronoi(triangulation);
@@ -312,6 +364,8 @@ public class PointsManager : MonoBehaviour
     private void OnDrawGizmos()
     {
 
+        //Gizmos.DrawWireSphere(Vector3.zero, area);
+
         if (points.Count <= 0) return;
 
         //points.bubbleSortX();
@@ -333,19 +387,51 @@ public class PointsManager : MonoBehaviour
             triangulation.Draw();
 
 
-        if(voronoi != null && voronoi.points != null)
+        Gizmos.color = Color.red;
+        voronoi.Draw();
+
+        //if (voronoi != null && voronoi.points != null)
+        //{
+        //    for (int i = 0; i < voronoi.points.Count; i++)
+        //    {
+        //        Gizmos.color = Color.green;
+        //        Gizmos.DrawSphere(voronoi.points[i], 10.5f);
+        //    }
+        //    for (int i = 0; i < voronoi.segments.Count; i++)
+        //    {
+        //        voronoi.segments[i].Draw();
+        //    }
+        //}
+
+    }
+
+    private void clear()
+    {
+
+        points = new List<Vector2>();
+
+        for (int i = 0; i < numberOfPoints; i++)
         {
-            for (int i = 0; i < voronoi.points.Count; i++)
-            {
-                Gizmos.color = Color.green;
-                Gizmos.DrawSphere(voronoi.points[i], 0.5f);
-            }
-            for (int i = 0; i < voronoi.segments.Count; i++)
-            {
-                voronoi.segments[i].Draw();
-            }
+            points.Add(new Vector2(Random.Range(-area, area), Random.Range(-area, area)));
         }
 
+        points.sortX();
+        convexHull = Jarvis.GetConvexHull(points);
+        triangulation = null;
+        OnTriangulate();
+        if (Application.isPlaying)
+        {
+            RecreatePoints();
+        }
+    }
+
+    private void recreateVoronoiMeshes()
+    {
+        meshesVoronoi.clear();
+        for (int i = 0; i < voronoi.polygons.Count; i++)
+        {
+            meshesVoronoi.createMesh(voronoi.polygons[i], new Vector3(0, 0, -1), Random.ColorHSV());
+        }
     }
 
 }
@@ -394,10 +480,6 @@ public class DisplayTriangle
         meshFilter = tr.gameObject.AddComponent<MeshFilter>();
         meshFilter.mesh = m;
         tr.transform.position = center;
-
-
-
-
     }
 
     public void applyTriangle(Triangle tri)
