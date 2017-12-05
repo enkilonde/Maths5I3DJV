@@ -39,6 +39,7 @@ public class MeshCreator3D
 
     public void createMesh(Polygon3D polygon)
     {
+
         GameObject obj = new GameObject("poly");
         MeshRenderer rend = obj.AddComponent<MeshRenderer>();
         rend.material = new Material(Shader.Find("Standard"));
@@ -48,10 +49,11 @@ public class MeshCreator3D
         meshes.Add(filt);
 
         obj.transform.localScale = new Vector3(1, 1, -1);
-        obj.transform.position = polygon.barycenter;
+        //obj.transform.position = polygon.barycenter;
 
         updateMesh(polygon, filt);
-        rend.material.color = Color.white;
+        rend.material.color = new Color(1, 1, 1, 0.8f) ;
+        rend.material.SetFloat("_Mode", 2.0f);
         obj.SetActive(enabled);
 
 

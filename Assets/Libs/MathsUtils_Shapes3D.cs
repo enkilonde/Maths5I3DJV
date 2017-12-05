@@ -22,9 +22,71 @@ namespace EnkiBye.Maths.Shapes
             }
         }
 
+        public Polygon3D(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
+        {
+            setFaces(v1, v2, v3, v4);
+        }
+        public Polygon3D(Point p1, Point p2, Point p3, Point p4)
+        {
+            setFaces(p1, p2, p3, p4);
+        }
         public Polygon3D(Face[] _faces)
         {
+            setFaces(_faces);
+        }
+
+
+        private void setFaces(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
+        {
+            setFaces(new Point(v1), new Point(v2), new Point(v3), new Point(v4));
+        }
+        private void setFaces(Point p1, Point p2, Point p3, Point p4)
+        {
+            setFaces(new Face[] { new Face(p1, p2, p3), new Face(p2, p3, p4), new Face(p3, p4, p1), new Face(p4, p1, p2) });
+        }
+        private void setFaces(Face[] _faces)
+        {
             faces = _faces;
+            checkFacesOrientation();
+        }
+
+        public void addPoint(Vector3 point)
+        {
+
+            List<Face> facesToReplace = new List<Face>();
+            List<Face> newFaces = new List<Face>();
+            for (int i = 0; i < faces.Length; i++)
+            {
+                if (faces[i].seePoint(point)) facesToReplace.Add(faces[i]);
+                else newFaces.Add(faces[i]);
+            }
+
+            for (int i = 0; i < facesToReplace.Count; i++)
+            {
+                for (int a = 0; a < 3; a++) // on browse les segments
+                {
+                    Point p1 = facesToReplace[i][a];
+                    Point p2 = facesToReplace[i][(int)Mathf.Repeat(a+1, 3)];
+                    bool internSegment = false;
+                    for (int j = 0; j < facesToReplace.Count; j++)
+                    {
+                        if (i == j) continue;
+                        if (!facesToReplace[j].points.contains(p1)) continue;
+                        if (!facesToReplace[j].points.contains(p2)) continue;
+                        // la face j a un segment commun avec i
+                        internSegment = true;
+                    }//for j
+                    if (internSegment) continue; // si c'est un segment intern, on le skip
+                    newFaces.Add(new Face(p1, p2, point));
+                } // for a
+            } // for i
+            faces = newFaces.ToArray();
+            checkFacesOrientation();
+        }//addPoint
+
+        
+        public void checkFacesOrientation()
+        {
             //flip the faces to make sure no one is looking at the barycenter (the polygon is convex)
             Vector3 bary = barycenter;
             for (int i = 0; i < faces.Length; i++)
@@ -33,9 +95,9 @@ namespace EnkiBye.Maths.Shapes
                 if (faces[i].seePoint(bary)) Debug.LogError("NOPE");
             }
 
+            Debug.Log("number of faces = " + faces.Length);
         }
 
-        
     }//Polygon3D
 
 
@@ -114,8 +176,10 @@ namespace EnkiBye.Maths.Shapes
 
         public bool seePoint(Vector3 point)
         {
-            return Vector3.Dot(point-a, normal) > 0;
+            return Vector3.Dot(point - a, normal) > 0;
         }
+
+        
 
     }//Face
 
@@ -148,7 +212,12 @@ namespace EnkiBye.Maths.Shapes
             return p1.position - p2.position;
         }
 
+
     }//Point
+
+
+
+
 
 
 }

@@ -7,36 +7,23 @@ using EnkiBye.Maths.Shapes;
 
 public class points3DManager : MonoBehaviour
 {
+    public float range = 10;
 
+    public List<Vector3> points = new List<Vector3>();
 
-    public List<Point> points = new List<Point>();
+    public Vector3 newPoint;
 
+    private Polygon3D convexHull;
 
+    private MeshCreator3D meshCreator;
 
     private void Start()
     {
-        Point p1 = new Point(new Vector3(0, 0, 1));
-        Point p2 = new Point(new Vector3(1, 0, -1));
-        Point p3 = new Point(new Vector3(-1, 0, -1));
-        Point p4 = new Point(new Vector3(0, 1, 0));
+        convexHull = MathsTool3D.getConvexHull(points);
 
-        Face f1 = new Face(p1, p3, p2);
-        Face f2 = new Face(p2, p3, p4);
-        Face f3 = new Face(p3, p4, p1);
-        Face f4 = new Face(p4, p1, p2);
+        meshCreator = new MeshCreator3D();
+        meshCreator.createMesh(convexHull);
 
-        Face[] faces = new Face[4] { f1, f2, f3, f4 };
-
-        Polygon3D poly = new Polygon3D(faces);
-
-        MeshCreator3D M = new MeshCreator3D();
-
-        M.createMesh(poly);
-
-        for (int i = 0; i < points.Count; i++)
-        {
-
-        }
 
 
     }
@@ -44,10 +31,36 @@ public class points3DManager : MonoBehaviour
 
 
 
+    public void CreateNewPoint()
+    {
+        newPoint = Random.insideUnitSphere * range;
+    }
+
+    public void addNewPoint()
+    {
+        convexHull.addPoint(newPoint);
+        points.Add(newPoint);
+
+        meshCreator.updateMesh(convexHull, meshCreator.meshes[0]);
+    }
 
 
+    private void OnDrawGizmosSelected()
+    {
+        float gizmoSize = 0.1f;
+
+        Gizmos.DrawWireSphere(transform.position, range);
 
 
+        Gizmos.color = new Color(1, 0, 0, 0.5f);
+        Gizmos.DrawSphere(newPoint, gizmoSize);
 
+        Gizmos.color = new Color(0, 1, 0, 0.5f);
+        for (int i = 0; i < points.Count; i++)
+        {
+            Gizmos.DrawSphere(points[i], gizmoSize);
+        }
+
+    }
 
 }
