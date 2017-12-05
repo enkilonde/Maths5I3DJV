@@ -41,7 +41,7 @@ public class MeshCreator
     {
         GameObject obj = new GameObject("poly");
         MeshRenderer rend = obj.AddComponent<MeshRenderer>();
-        rend.material = new Material(Shader.Find("Diffuse"));
+        rend.material = new Material(Shader.Find("Standard"));
         MeshFilter filt = obj.AddComponent<MeshFilter>();
         Mesh mesh = new Mesh();
         filt.mesh = mesh;

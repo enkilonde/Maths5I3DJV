@@ -1,9 +1,9 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-class Point {
+class LinePoint {
 	public Vector3 p;
-	public Point next;
+	public LinePoint next;
 }
 
 public class LinesGR : MonoBehaviour {
@@ -23,7 +23,7 @@ public class LinesGR : MonoBehaviour {
 	private GUIStyle labelStyle;
 	private GUIStyle linkStyle;
 	
-	private Point first;
+	private LinePoint first;
 	
 	private float speed = 5.0f;
 
@@ -51,7 +51,7 @@ public class LinesGR : MonoBehaviour {
 			Vector3 e = GetNewPoint();
 			
 			if(first == null) {
-				first = new Point();
+				first = new LinePoint();
 				first.p = transform.InverseTransformPoint(e);
 			}
 			
@@ -59,7 +59,7 @@ public class LinesGR : MonoBehaviour {
 				Vector3 ls = transform.TransformPoint(s);
 				AddLine(ml, MakeQuad(ls, e, lineSize), false);
 				
-				Point points = first;
+				LinePoint points = first;
 				while(points.next != null) {
 					Vector3 next = transform.TransformPoint(points.p);
 					float d = Vector3.Distance(next, ls);
@@ -69,7 +69,7 @@ public class LinesGR : MonoBehaviour {
 					points = points.next;
 				}
 				
-				Point np = new Point();
+				LinePoint np = new LinePoint();
 				np.p = transform.InverseTransformPoint(e);
 				points.next = np;
 
