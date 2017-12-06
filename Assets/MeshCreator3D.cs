@@ -48,12 +48,13 @@ public class MeshCreator3D
         filt.mesh = mesh;
         meshes.Add(filt);
 
-        obj.transform.localScale = new Vector3(1, 1, -1);
+        //obj.transform.localScale = new Vector3(1, 1, -1);
         //obj.transform.position = polygon.barycenter;
 
         updateMesh(polygon, filt);
         rend.material.color = new Color(1, 1, 1, 0.8f) ;
         rend.material.SetFloat("_Mode", 2.0f);
+        rend.material.color = new Color(1, 1, 1, 0.8f) ;
         obj.SetActive(enabled);
 
 

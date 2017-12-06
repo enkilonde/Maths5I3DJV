@@ -52,7 +52,6 @@ namespace EnkiBye.Maths.Shapes
 
         public void addPoint(Vector3 point)
         {
-
             List<Face> facesToReplace = new List<Face>();
             List<Face> newFaces = new List<Face>();
             for (int i = 0; i < faces.Length; i++)
@@ -71,13 +70,11 @@ namespace EnkiBye.Maths.Shapes
                     for (int j = 0; j < facesToReplace.Count; j++)
                     {
                         if (i == j) continue;
-                        if (!facesToReplace[j].points.contains(p1)) continue;
-                        if (!facesToReplace[j].points.contains(p2)) continue;
-                        // la face j a un segment commun avec i
-                        internSegment = true;
+                        if (facesToReplace[j].containPoints(p1, p2))
+                            internSegment = true;
                     }//for j
                     if (internSegment) continue; // si c'est un segment intern, on le skip
-                    newFaces.Add(new Face(p1, p2, point));
+                    newFaces.Add(new Face(p1, p2, new Point(point)));
                 } // for a
             } // for i
             faces = newFaces.ToArray();
@@ -95,7 +92,7 @@ namespace EnkiBye.Maths.Shapes
                 if (faces[i].seePoint(bary)) Debug.LogError("NOPE");
             }
 
-            Debug.Log("number of faces = " + faces.Length);
+            //Debug.Log("number of faces = " + faces.Length);
         }
 
     }//Polygon3D
@@ -179,6 +176,16 @@ namespace EnkiBye.Maths.Shapes
             return Vector3.Dot(point - a, normal) > 0;
         }
 
+
+        public bool containPoints(Point p1, Point p2)
+        {
+            int numberOfCorrespondances = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                if (points[i] == p1 || points[i] == p2) numberOfCorrespondances++;
+            }
+            return numberOfCorrespondances == 2;
+        }
         
 
     }//Face
@@ -210,6 +217,16 @@ namespace EnkiBye.Maths.Shapes
         public static Vector3 operator -(Point p1, Point p2)
         {
             return p1.position - p2.position;
+        }
+
+        public static bool operator ==(Point p1, Point p2)
+        {
+            return p1.position == p2.position;
+        }
+
+        public static bool operator !=(Point p1, Point p2)
+        {
+            return p1.position != p2.position;
         }
 
 
