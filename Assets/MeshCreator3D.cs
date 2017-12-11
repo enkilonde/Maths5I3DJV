@@ -42,7 +42,11 @@ public class MeshCreator3D
 
         GameObject obj = new GameObject("poly");
         MeshRenderer rend = obj.AddComponent<MeshRenderer>();
-        rend.material = new Material(Shader.Find("Standard"));
+        rend.material = Resources.Load<Material>("Transparent");
+        //rend.material.color = new Color(1, 1, 1, 0.8f);
+        //rend.material.SetFloat("_Mode", 3.0f);
+        //rend.material.color = new Color(1, 1, 1, 0.8f);
+
         MeshFilter filt = obj.AddComponent<MeshFilter>();
         Mesh mesh = new Mesh();
         filt.mesh = mesh;
@@ -52,9 +56,6 @@ public class MeshCreator3D
         //obj.transform.position = polygon.barycenter;
 
         updateMesh(polygon, filt);
-        rend.material.color = new Color(1, 1, 1, 0.8f) ;
-        rend.material.SetFloat("_Mode", 2.0f);
-        rend.material.color = new Color(1, 1, 1, 0.8f) ;
         obj.SetActive(enabled);
 
 
@@ -65,6 +66,12 @@ public class MeshCreator3D
     }
 
 
-
+    public void SetMaterial(Material mat)
+    {
+        for (int i = 0; i < meshes.Count; i++)
+        {
+            meshes[i].GetComponent<Renderer>().material = mat;
+        }
+    }
 
 }

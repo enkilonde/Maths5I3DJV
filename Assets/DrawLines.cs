@@ -12,18 +12,7 @@ public class DrawLines
         instances.Add(this);
     }
 
-    ~DrawLines()
-    {
-        instances.Remove(this);
-    }
 
-    public static void CleanAll()
-    {
-        for (int i = 0; i < instances.Count; i++)
-        {
-            instances[i].CleanLinesList();
-        }
-    }
 
     public static void resizeAll(float value = 1)
     {
@@ -83,7 +72,7 @@ public class DrawLines
         overideOld.positionCount = points.Length;
         overideOld.SetPositions(points);
         overideOld.loop = loop;
-        overideOld.material.color = color;
+        overideOld.material.color = new Color(color.r, color.g, color.b, color == default(Color) ? 1 : color.a); 
         if (!lines.Contains(overideOld)) lines.Add(overideOld);
         overideOld.enabled = enabled;
         return overideOld;
@@ -94,11 +83,14 @@ public class DrawLines
         GameObject go = new GameObject("line renderer");
         LineRenderer lr = go.AddComponent<LineRenderer>();
         lr.startWidth = lr.endWidth = 0.2f;
-        lr.material = new Material(Shader.Find("Diffuse"));
-        lr.material.color = color;
+        lr.material = Resources.Load<Material>("Lines");
+        lr.material.color = new Color(color.r, color.g, color.b, color == default(Color)?1:color.a);
         lr.positionCount = points.Length;
         lr.loop = loop;
         lr.SetPositions(points);
+        lr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        lr.receiveShadows = false;
+
         lines.Add(lr);
         lr.enabled = enabled;
         return lr;

@@ -8,3 +8,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Delaunay.unity
     guid: 3e3842e4286d7bd44a1ac9a3ef4e5f21
+  - enabled: 1
+    path: Assets/3dHull.unity
+    guid: ac2d22731bedc5049a058915db3d0aad

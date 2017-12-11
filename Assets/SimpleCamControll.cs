@@ -49,7 +49,7 @@ public class SimpleCamControll : MonoBehaviour
 
         if(Input.mouseScrollDelta != Vector2.zero)
         {
-            updateSizes();
+            updateSizes(PointsManager.get());
         }
 
 
@@ -67,7 +67,7 @@ public class SimpleCamControll : MonoBehaviour
 
 	}
 
-    public void updateSizes()
+    public void updateSizes(PointsManager manager)
     {
         if (cam == null) cam = Camera.main;
         for (int i = 0; i < PointsManager.get().pointsTr.Count; i++)
@@ -75,7 +75,8 @@ public class SimpleCamControll : MonoBehaviour
             PointsManager.get().pointsTr[i].localScale = Vector3.one * cam.orthographicSize / pointsSizeRatio;
         }
 
-        DrawLines.resizeAll(cam.orthographicSize / lineWidthRatio);
+        manager.linesTriangulation.resize(cam.orthographicSize / lineWidthRatio);
+        manager.linesVoronoi.resize(cam.orthographicSize / lineWidthRatio);
 
         //for (int i = 0; i < DrawLines.lines.Count; i++)
         //{

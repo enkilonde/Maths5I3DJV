@@ -43,8 +43,9 @@ public class PointsManager : MonoBehaviour
 
     public Voronoi voronoi;
 
-    private DrawLines linesTriangulation = new DrawLines();
-    private DrawLines linesVoronoi = new DrawLines();
+    [HideInInspector] public DrawLines linesTriangulation = new DrawLines();
+    [HideInInspector] public DrawLines linesVoronoi = new DrawLines();
+
     MeshCreator meshesVoronoi = new MeshCreator();
 
     [HideInInspector]
@@ -320,7 +321,7 @@ public class PointsManager : MonoBehaviour
 
 
 
-        SimpleCamControll.get().updateSizes();
+        SimpleCamControll.get().updateSizes(this);
 
     }//createMeshes
 
