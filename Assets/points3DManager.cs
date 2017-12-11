@@ -48,16 +48,21 @@ public class points3DManager : MonoBehaviour
 
     public void CreateNewPoint()
     {
-        newPoint = Random.insideUnitSphere * range;
-
-        newPointTR.transform.position = newPoint;
-
+        MoveNewPoint(Random.insideUnitSphere * range);
     }
 
-    public void addNewPoint()
+    public void MoveNewPoint(Vector3 pos)
     {
-        convexHull.addPoint(newPoint);
-        points.Add(newPoint);
+        newPoint = pos;
+
+        newPointTR.transform.position = newPoint;
+    }
+
+    public void addNewPoint(Vector3 point)
+    {
+        MoveNewPoint(point);
+        convexHull.addPoint(point);
+        points.Add(point);
 
         meshCreator.updateMesh(convexHull, meshCreator.meshes[0]);
 
@@ -90,11 +95,17 @@ public class points3DManager : MonoBehaviour
     private void OnGUI()
     {
 
-        if (GUILayout.Button("CreateNewPoint"))
+        if (GUILayout.Button("set red point on front"))
+            MoveNewPoint(Camera.main.transform.position + Camera.main.transform.forward);
+
+        if (GUILayout.Button("move red point"))
             CreateNewPoint();
 
-        if (GUILayout.Button("addNewPoint"))
-            addNewPoint();
+        if (GUILayout.Button("add red point"))
+            addNewPoint(newPoint);
+
+        if (GUILayout.Button("add random point"))
+            addNewPoint(Random.insideUnitSphere * range);
 
         if (GUILayout.Button("change material"))
         {

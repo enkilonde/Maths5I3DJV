@@ -42,7 +42,7 @@ public class MeshCreator3D
 
         GameObject obj = new GameObject("poly");
         MeshRenderer rend = obj.AddComponent<MeshRenderer>();
-        rend.material = Resources.Load<Material>("Transparent");
+        rend.material = Resources.Load<Material>("Opaque");
         //rend.material.color = new Color(1, 1, 1, 0.8f);
         //rend.material.SetFloat("_Mode", 3.0f);
         //rend.material.color = new Color(1, 1, 1, 0.8f);

@@ -20,7 +20,7 @@ public class Point3DManagerEditor : Editor
 
         if (GUILayout.Button("Add point"))
         {
-            _base.addNewPoint();
+            _base.addNewPoint(_base.newPoint);
         }
 
 
