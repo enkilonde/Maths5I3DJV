@@ -513,10 +513,12 @@ namespace EnkiBye.Maths.Shapes
 
         public List<Segment> segments;
 
+        public int numberOfEdges = 0;
+
         public Voronoi(Triangulation triangulation)
         {
             secondVersion(triangulation);
-            //return;
+            return;
 
             delaunay = triangulation;
             trianglesTemp = new List<Triangle>(delaunay.triangles);
@@ -594,6 +596,7 @@ namespace EnkiBye.Maths.Shapes
                 }
 
                 polygons.Add(new Polygon(polygonPoints.ToArray()));
+                numberOfEdges += polygonPoints.Count;
             }
 
 

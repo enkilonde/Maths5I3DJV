@@ -303,19 +303,27 @@ public class PointsManager : MonoBehaviour
             }
         }
 
-        if(linesVoronoi.lines.Count != voronoi.segments.Count)
+        if(linesVoronoi.lines.Count != voronoi.numberOfEdges)
         {
             linesVoronoi.CleanLinesList();
-            for (int i = 0; i < voronoi.segments.Count; i++)
+            for (int i = 0; i < voronoi.polygons.Count ; i++)
             {
-                linesVoronoi.DrawLine_LR(voronoi.segments[i].points, true, Color.green);
+                for (int j = 0; j < voronoi.polygons[i].segments.Length; j++)
+                {
+                    linesVoronoi.DrawLine_LR(voronoi.polygons[i].segments[j].points, true, Color.green);
+                }
             }
         }
         else
         {
-            for (int i = 0; i < voronoi.segments.Count; i++)
+            int n = 0;
+            for (int i = 0; i < voronoi.polygons.Count; i++)
             {
-                linesVoronoi.DrawLine_LR(voronoi.segments[i].points, linesVoronoi.lines[i], true, Color.green);
+                for (int j = 0; j < voronoi.polygons[i].segments.Length; j++)
+                {
+                    linesVoronoi.DrawLine_LR(voronoi.polygons[i].segments[j].points, linesVoronoi.lines[n], true, Color.green);
+                    n++;
+                }
             }
         }
 
