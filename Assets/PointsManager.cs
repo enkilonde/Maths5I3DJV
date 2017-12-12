@@ -435,6 +435,74 @@ public class PointsManager : MonoBehaviour
         }
     }
 
+
+    public void OnGUI()
+    {
+
+
+        GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+        labelStyle.alignment = TextAnchor.UpperLeft;
+
+        GUILayout.Label("Number of points : " + points.Count, labelStyle);
+
+
+
+        GUIStyle style = new GUIStyle(GUI.skin.button);
+        style.alignment = TextAnchor.UpperLeft;
+
+        if (GUILayout.Button("Toggle triangulation", style))
+        {
+            linesTriangulation.toggleEnable();
+            meshesEnabled = !meshesEnabled;
+            for (int i = 0; i < meshes.Count; i++)
+            {
+                meshes[i].toggleEnable(meshesEnabled);
+            }
+        }
+
+        if (GUILayout.Button("Toggle Voronoi", style))
+        {
+            linesVoronoi.toggleEnable();
+        }
+
+        if (GUILayout.Button("Toggle Triangles Focus", style))
+        {
+            canFocus = !canFocus;
+        }
+
+        if (GUILayout.Button("Toggle Colored poly", style))
+        {
+            meshesVoronoi.clear();
+            meshesVoronoi.ToggleEnable(!meshesVoronoi.enabled);
+            if (meshesVoronoi.enabled) recreateVoronoiMeshes();
+        }
+
+        if (GUILayout.Button("Reset", style))
+        {
+            clear();
+        }
+
+        if (GUILayout.Button("Moving", style))
+        {
+            moving = !moving;
+        }
+
+
+        GUILayout.Button(new GUIContent("HELP", "\n\n<b>Controls</b> : \n" +
+        "<b>Middle click + Move mouse</b> : move\n" +
+        "<b>Left click on point</b> : Drag&drop this point\n" +
+        "<b>Right click on point</b> : Delete this point\n" +
+        "<b>Right click anywhere</b> : Add point"));
+
+        Vector2 mousePos = Event.current.mousePosition;
+
+        GUIStyle HelpStyle = new GUIStyle(GUI.skin.label);
+        HelpStyle.alignment = TextAnchor.UpperLeft;
+
+        Rect tooltipPos = new Rect(mousePos, new Vector2(500, 500));
+        GUI.Label(tooltipPos, GUI.tooltip, HelpStyle);
+    }
+
 }
 
 

@@ -25,13 +25,53 @@ public class ChangeScene : MonoBehaviour
 		
         if(Input.GetKeyDown(KeyCode.F1))
         {
-            SceneManager.LoadScene(0);
+            GoToTriangulation();
         }
 
         if (Input.GetKeyDown(KeyCode.F2))
         {
-            SceneManager.LoadScene(1);
+            GoToEnvelope();
         }
 
     }
+
+    private void OnGUI()
+    {
+        GUIStyle style = new GUIStyle(GUI.skin.button);
+        style.alignment = TextAnchor.UpperRight;
+        float size = 100;
+        Rect rightRect = new Rect(Screen.width - size, 0, size, 200);
+
+
+        GUILayout.BeginArea(rightRect);
+        if(GUILayout.Button("Triangulation", style))
+        {
+            GoToTriangulation();
+        }
+        else if(GUILayout.Button("Envelope 3D", style))
+        {
+            GoToEnvelope();
+        }
+
+        GUILayout.FlexibleSpace();
+
+        if (GUILayout.Button("QUIT", style))
+        {
+            Application.Quit();
+        }
+
+
+        GUILayout.EndArea();
+    }
+
+    public void GoToTriangulation()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+    public void GoToEnvelope()
+    {
+        SceneManager.LoadScene(1);
+    }
+
 }

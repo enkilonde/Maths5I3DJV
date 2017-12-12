@@ -94,26 +94,48 @@ public class points3DManager : MonoBehaviour
 
     private void OnGUI()
     {
+        GUIStyle labelStyle = new GUIStyle(GUI.skin.label);
+        labelStyle.alignment = TextAnchor.UpperLeft;
 
-        if (GUILayout.Button("set red point on front"))
+        GUILayout.Label("Number of points : " + points.Count, labelStyle);
+
+
+        GUIStyle style = new GUIStyle(GUI.skin.button);
+        style.alignment = TextAnchor.UpperLeft;
+
+        if (GUILayout.Button("set red point on front", style))
             MoveNewPoint(Camera.main.transform.position + Camera.main.transform.forward);
 
-        if (GUILayout.Button("move red point"))
+        if (GUILayout.Button("move red point", style))
             CreateNewPoint();
 
-        if (GUILayout.Button("add red point"))
+        if (GUILayout.Button("add red point", style))
             addNewPoint(newPoint);
 
-        if (GUILayout.Button("add random point"))
+        if (GUILayout.Button("add random point", style))
             addNewPoint(Random.insideUnitSphere * range);
 
-        if (GUILayout.Button("change material"))
+        if (GUILayout.Button("change material", style))
         {
             matIndex++;
             if (matIndex >= meshMats.Length) matIndex = 0;
             meshCreator.SetMaterial(meshMats[matIndex]);
-
         }
+
+
+        GUILayout.Button(new GUIContent("HELP", "\n\n<b>Controls</b> : \n" +
+            "<b>ZQSD</b> : move\n" +
+            "<b>A-E</b> : move UP-DOWN\n" +
+            "<b>Right click + move mouse</b> : Look around\n" +
+            "<b>Left click + move mouse</b> : Change light"));
+
+        Vector2 mousePos = Event.current.mousePosition;
+
+        GUIStyle HelpStyle = new GUIStyle(GUI.skin.label);
+        HelpStyle.alignment = TextAnchor.UpperLeft;
+
+        Rect tooltipPos = new Rect(mousePos, new Vector2(500, 500));
+        GUI.Label(tooltipPos, GUI.tooltip, HelpStyle);
 
     }
 
