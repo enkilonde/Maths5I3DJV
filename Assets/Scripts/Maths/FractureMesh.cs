@@ -130,6 +130,18 @@ public class FractureMesh : MonoBehaviour
         Quaternion objRot = meshFilter.transform.rotation;
         Vector3 objScale = meshFilter.transform.lossyScale;
 
+        //Extraction des data du voronoi.
+        //faire la rotation ici
+        
+
+        //Mettre en param une liste de points.
+        //Les projetter sur un plane (construit à partir des 3 premiers points
+        //projetter tout les points sur le plane.
+        //Rotate tout pour que les points soit tous sur un plane droit (pour pouvoir bosser en 2D)
+        //faire la même rotation sur le mesh
+        // ----faire la frature ----
+        //à la fin, re-rotate les points obtenus selon la rotation inverse de celle du début.
+
         int[] originalsTriangles = mesh.GetTriangles(0);
 
         Plane plane = new Plane(voronoi.delaunay.points[0], voronoi.delaunay.points[1], voronoi.delaunay.points[2]);
@@ -156,10 +168,6 @@ public class FractureMesh : MonoBehaviour
             trianglesPoints[0] = scaledPoints[0].RotateAroundPivot(objPos, objRot);
             trianglesPoints[1] = scaledPoints[1].RotateAroundPivot(objPos, objRot);
             trianglesPoints[2] = scaledPoints[2].RotateAroundPivot(objPos, objRot);
-
-            //trianglesPoints[0] = (mesh.vertices[t1] + objPos).RotateAroundPivot(objPos, objRot);
-            //trianglesPoints[1] = (mesh.vertices[t2] + objPos).RotateAroundPivot(objPos, objRot);
-            //trianglesPoints[2] = (mesh.vertices[t3] + objPos).RotateAroundPivot(objPos, objRot);
 
 
             projectedPoints[0] = plane.ClosestPointOnPlane(trianglesPoints[0]);

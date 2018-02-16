@@ -528,6 +528,9 @@ namespace EnkiBye.Maths.Shapes
 
     }//Triangulation
 
+
+
+
     [System.Serializable]
     public class Voronoi
     {
@@ -592,7 +595,7 @@ namespace EnkiBye.Maths.Shapes
         public int pointContainer(Vector3 point)
         {
             Plane p = new Plane(delaunay.points[0], delaunay.points[1], delaunay.points[2]);
-            Vector2 projection = p.ClosestPointOnPlane(point);
+            Vector3 projection = p.ClosestPointOnPlane(point);
             int index = 0;
             for (int i = 0; i < polygons.Count; i++)
             {

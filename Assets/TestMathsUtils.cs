@@ -166,6 +166,15 @@ public class TestMathsUtils : MonoBehaviour {
         Gizmos.color = Color.blue;
         Gizmos.DrawLine(p2, p2 + Vector3.Cross(p2 - p1, p3 - p2));
 
+        if (objects2.Length < 3) return;
+        Plane pl = new Plane(p1, p2, p3);
+        Vector3 norm = pl.normal;
+        Debug.Log("normal = " + norm * 360);
+        Quaternion rot = Quaternion.LookRotation(norm, Vector3.up);
+        objects2[3].rotation = rot;
+
+
+
     }
 
 
