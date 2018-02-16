@@ -130,7 +130,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 396054444}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4283120ce4704324cb1eefff61dc51f0, type: 3}
   m_Name: 
@@ -213,7 +213,7 @@ MonoBehaviour:
   - {x: -1, y: 0, z: 1}
   - {x: -1, y: 0, z: -1}
   - {x: 0, y: 1, z: 0}
-  newPoint: {x: 0, y: 3, z: 1}
+  newPoint: {x: -0.6, y: 0, z: 1}
   newPointTR: {fileID: 1723091227}
   meshMats:
   - {fileID: 2100000, guid: 9fb95855657bd3b4a8717dffb818291c, type: 2}

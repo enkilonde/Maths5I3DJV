@@ -68,7 +68,7 @@ namespace EnkiBye.Maths.Shapes
             return true;
         }
 
-        public virtual bool HasSegment(Segment segment, bool canBeOposite = true)
+        public virtual bool HasSegment(Segment2D segment, bool canBeOposite = true)
         {
             for (int i = 0; i < segments.Length; i++)
             {
@@ -212,7 +212,7 @@ namespace EnkiBye.Maths.Shapes
 
 
     [System.Serializable]
-    public class Segment
+    public class Segment2D
     {
         public Vector2[] points;
         public Vector2 a;
@@ -226,11 +226,11 @@ namespace EnkiBye.Maths.Shapes
             }
         }
 
-        public Segment oposite
+        public Segment2D oposite
         {
             get
             {
-                return new Segment(b, a);
+                return new Segment2D(b, a);
             }
         }
 
@@ -245,7 +245,7 @@ namespace EnkiBye.Maths.Shapes
             }
         }
 
-        public Segment(Vector2 p1, Vector2 p2)
+        public Segment2D(Vector2 p1, Vector2 p2)
         {
             points = (new Vector2[2] { p1, p2 }).reorderPoints();
             a = points[0];
@@ -258,9 +258,35 @@ namespace EnkiBye.Maths.Shapes
             return false;
         }
 
-        public bool isEqual(Segment other, bool canBeOposite = true)
+        public bool isEqual(Segment2D other, bool canBeOposite = true)
         {
             return ((a == other.a && b == other.b) || (a == other.b && b == other.a && canBeOposite));
+        }
+
+        public Vector2 intersection(Segment2D other)
+        {
+            Vector2 I = b - a;
+            Vector2 J = other.b - other.a;
+            float m = -(I.x * a.y + I.x * other.a.y + I.y * a.x - I.y * other.a.x) / (I.x * J.y - I.y * J.x);
+            float k = -(a.x * J.y - other.a.x * J.y - J.x * a.y + J.x * other.a.y) / (I.x * J.y - I.y * J.x);
+
+            return a + k * I;
+        }
+
+        public Vector2 intersection(Segment2D other, out bool inside)
+        {
+            Vector2 I = b - a;
+            Vector2 J = other.b - other.a;
+
+            //m = -(-Ix * Ay + Ix * Cy + Iy * Ax - Iy * Cx) / (Ix * Jy - Iy * Jx)
+            //k = -(Ax * Jy - Cx * Jy - Jx * Ay + Jx * Cy) / (Ix * Jy - Iy * Jx)
+
+            float m = -(-I.x * a.y + I.x * other.a.y + I.y * a.x - I.y * other.a.x) / (I.x * J.y - I.y * J.x);
+            float k = -(a.x * J.y - other.a.x * J.y - J.x * a.y + J.x * other.a.y) / (I.x * J.y - I.y * J.x);
+
+            inside = (m >= 0 && m <= 1 && k >= 0 && k <= 1);
+
+            return a + k * I;
         }
 
         public virtual void Draw()
@@ -281,7 +307,7 @@ namespace EnkiBye.Maths.Shapes
     /// the segment side of a triangle
     /// </summary>
     [System.Serializable]
-    public class edge : Segment
+    public class edge : Segment2D
     {
         [HideInInspector]
         public Polygon polygon;
@@ -315,10 +341,10 @@ namespace EnkiBye.Maths.Shapes
                 return; 
             #endif
 
-            Color c = Gizmos.color;
-            Gizmos.color = Color.black;
-            Gizmos.DrawLine(middle, middle + normal);
-            Gizmos.color = c;
+            //Color c = Gizmos.color;
+            //Gizmos.color = Color.black;
+            //Gizmos.DrawLine(middle, middle + normal);
+            //Gizmos.color = c;
         }
     }//edge 
 
@@ -330,7 +356,7 @@ namespace EnkiBye.Maths.Shapes
 
 
     [System.Serializable]
-    public class Triangulation
+    public class Delaunay
     {
         public List<Triangle> triangles;
         public List<Vector2> points;
@@ -351,13 +377,19 @@ namespace EnkiBye.Maths.Shapes
             }
         }
 
-        public Triangulation()
+        public Delaunay()
         {
 
         }
-        public Triangulation(Vector2[] _points) { new Triangulation(_points.ToList()); }
+        public Delaunay(Vector2[] _points) { CreateDelaunay(_points.ToList()); }
 
-        public Triangulation (List<Vector2> _points)
+        public Delaunay (List<Vector2> _points)
+        {
+            CreateDelaunay(_points);
+        } //Delaunay (List<Vector2>)
+
+
+        private void CreateDelaunay(List<Vector2> _points)
         {
             List<Vector2> tempPoints = new List<Vector2>(_points);
             points = new List<Vector2>();
@@ -370,7 +402,7 @@ namespace EnkiBye.Maths.Shapes
             points.Add(tempPoints[2]);
 
             recalculateHull();
-            if(Application.isPlaying && false)
+            if (Application.isPlaying && false)
             {
                 //PointsManager.get().StartCoroutine(addPointProcessDelayed(tempPoints));
             }
@@ -381,11 +413,7 @@ namespace EnkiBye.Maths.Shapes
                     addPoint(tempPoints[i]);
                 }
             }
-
-
-
         }
-
 
         public IEnumerator addPointProcessDelayed(List<Vector2> tempPoints, bool wait = false)
         {
@@ -503,73 +531,31 @@ namespace EnkiBye.Maths.Shapes
     [System.Serializable]
     public class Voronoi
     {
-        public Triangulation delaunay;
+        public static float externLenght = 1000;
+        public Delaunay delaunay;
 
         public List<Polygon> polygons = new List<Polygon>();
 
-        private List<Triangle> trianglesTemp;
-
-        public List<Vector2> points;
-
-        public List<Segment> segments;
+        public List<Vector2> innerPoints = new List<Vector2>();
 
         public int numberOfEdges = 0;
 
-        public Voronoi(Triangulation triangulation)
+        public Voronoi(Vector3[] points)
         {
-            secondVersion(triangulation);
-            return;
+            delaunay = new Delaunay(points.toVector2Array());
+            Initialisation();
+        }
 
+        public Voronoi(Delaunay triangulation)
+        {
             delaunay = triangulation;
-            trianglesTemp = new List<Triangle>(delaunay.triangles);
-            points = new List<Vector2>();
-            segments = new List<Segment>();
-
-            bool[] freeEdge = new bool[3] { false, false, false };
-
-            for (int i = 0; i < trianglesTemp.Count; i++)
-            {
-                freeEdge = new bool[3] { false, false, false };
-
-                for (int j = 0; j < trianglesTemp.Count; j++)
-                {
-                    if (i == j) continue;
-
-                    Vector2 adjacentReturn = trianglesTemp[i].isAdjacent(trianglesTemp[j]);
-                    Segment S = new Segment(trianglesTemp[i].hortocenter, trianglesTemp[j].hortocenter);
-                    if (adjacentReturn.x != -1) //the two triangles share a segment, so we link it
-                    {
-                        if (!hasSegment(S)) segments.Add(S);
-                        freeEdge[(int)adjacentReturn.x] = true;
-                    }
-                }
-
-                for (int j = 0; j < freeEdge.Length; j++)
-                {
-                    if (!freeEdge[j])
-                    {
-                        segments.Add(new Segment(trianglesTemp[i].hortocenter, trianglesTemp[i].segments[j].middle + trianglesTemp[i].segments[j].normal * 1000));
-                        points.Add(trianglesTemp[i].segments[j].middle + trianglesTemp[i].segments[j].normal * 1000);
-                    }
-                }
-            }
-
-            for (int i = 0; i < delaunay.triangles.Count; i++)
-            {
-                points.Add(delaunay.triangles[i].hortocenter);
-            }
-
-
-
+            Initialisation();
         }//voronoi()
 
-
-        public void secondVersion(Triangulation triangulation)
+        void Initialisation()
         {
-            delaunay = triangulation;
-            trianglesTemp = new List<Triangle>(delaunay.triangles);
-            points = new List<Vector2>();
-            segments = new List<Segment>();
+            if (delaunay == null) Debug.LogError("Delaunay need to be init first");
+
 
             for (int i = 0; i < delaunay.points.Count; i++)
             {
@@ -581,16 +567,18 @@ namespace EnkiBye.Maths.Shapes
 
                 for (int j = 0; j < delaunay.triangles.Count; j++) // on trouve les autres points
                 {
-                    if(delaunay.triangles[j].points.Contains(point))
+                    if (delaunay.triangles[j].points.Contains(point))
                     {
                         Triangle currentTriangle = delaunay.triangles[j];
                         adjacentTriangles.Add(currentTriangle);
-                        polygonPoints.Add(currentTriangle.hortocenter);
+                        Vector2 hortocenter = currentTriangle.hortocenter;
+                        polygonPoints.Add(hortocenter);
+                        if(!innerPoints.Contains(hortocenter)) innerPoints.Add(hortocenter);
                         int[] exterEdges = currentTriangle.ShareEdge(delaunay._convexHull);
                         for (int e = 0; e < exterEdges.Length; e++)
                         {
                             if (currentTriangle.segments[exterEdges[e]].points.Contains(point)) //si un des edges externe du triangle contient le point actuel, on ajoutte un point externe loin
-                                polygonPoints.Add(currentTriangle.hortocenter + currentTriangle.segments[exterEdges[e]].normal * 1000);
+                                polygonPoints.Add(hortocenter + currentTriangle.segments[exterEdges[e]].normal * externLenght);
                         }
                     }
                 }
@@ -598,20 +586,23 @@ namespace EnkiBye.Maths.Shapes
                 polygons.Add(new Polygon(polygonPoints.ToArray()));
                 numberOfEdges += polygonPoints.Count;
             }
-
-
         }
 
-        bool hasSegment(Segment S)
+
+        public int pointContainer(Vector3 point)
         {
-            for (int i = 0; i < segments.Count; i++)
+            Plane p = new Plane(delaunay.points[0], delaunay.points[1], delaunay.points[2]);
+            Vector2 projection = p.ClosestPointOnPlane(point);
+            int index = 0;
+            for (int i = 0; i < polygons.Count; i++)
             {
-                if(segments[i].isEqual(S))
-                {
-                    return true;
-                }
+                index = i;
+                if (polygons[i].ContainPoint(projection)) return index;
             }
-            return false;
+
+            Debug.LogError("Extern lenght too small in the voronoi class");
+            index = -1;
+            return index;
         }
 
         public virtual void Draw()

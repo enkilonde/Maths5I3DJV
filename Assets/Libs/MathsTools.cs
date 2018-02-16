@@ -27,11 +27,6 @@ namespace EnkiBye.Maths
             return ang;
         }//SignedAngle
 
-
-
-
-
-
         /// <summary>
         /// The area of the shape
         /// </summary>

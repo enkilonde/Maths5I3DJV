@@ -33,14 +33,15 @@ public class TestMathsUtils : MonoBehaviour {
 
     private void OnDrawGizmos()
     {
-        if (objects.Length < 3) return;
+        //if (objects.Length < 3) return;
 
         //gizmosWithoutTriangles();
 
         //gizmosWithTriangles();
 
-        polygonGizmos();
+        //polygonGizmos();
 
+        crossGizmos();
     }
 
     
@@ -146,6 +147,27 @@ public class TestMathsUtils : MonoBehaviour {
         }
 
     }
+
+    public void crossGizmos()
+    {
+        if (objects2.Length < 3) return;
+
+        Vector3 p1 = objects2[0].transform.position;
+        Vector3 p2 = objects2[1].transform.position;
+        Vector3 p3 = objects2[2].transform.position;
+
+        Gizmos.DrawSphere(p1, 0.1f);
+        Gizmos.DrawSphere(p2, 0.1f);
+        Gizmos.DrawSphere(p3, 0.1f);
+
+        Gizmos.DrawLine(p1, p2);
+        Gizmos.DrawLine(p2, p3);
+
+        Gizmos.color = Color.blue;
+        Gizmos.DrawLine(p2, p2 + Vector3.Cross(p2 - p1, p3 - p2));
+
+    }
+
 
 #endif
 
